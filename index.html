@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISTAR — Intelligence for Distressed Assets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #39ff6e;
+    --green-dim: #1a7a35;
+    --green-faint: rgba(57,255,110,0.06);
+    --bg: #080c09;
+    --bg2: #0d120f;
+    --text: #c8d4c9;
+    --text-dim: #5a6e5c;
+    --border: rgba(57,255,110,0.15);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* grid background */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .corner {
+    position: fixed;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  .corner-tl { top: 1.5rem; left: 1.5rem; }
+  .corner-tr { top: 1.5rem; right: 1.5rem; text-align: right; }
+  .corner-bl { bottom: 1.5rem; left: 1.5rem; }
+  .corner-br { bottom: 1.5rem; right: 1.5rem; text-align: right; }
+
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .tag::before, .tag::after {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--green);
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 0.25rem;
+  }
+
+  h1 span {
+    color: var(--green);
+    display: block;
+  }
+
+  .subtitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: clamp(0.75rem, 2vw, 0.95rem);
+    letter-spacing: 0.35em;
+    color: var(--text-dim);
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 3.5rem;
+  }
+
+  .description {
+    max-width: 520px;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text);
+    margin-bottom: 3.5rem;
+    font-weight: 300;
+  }
+
+  .description strong {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .divider {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--green), transparent);
+    margin: 0 auto 3.5rem;
+    opacity: 0.5;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 3.5rem;
+  }
+
+  .panel {
+    border: 1px solid var(--border);
+    background: var(--green-faint);
+    padding: 1.75rem 1.5rem;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 12px; height: 12px;
+    border-top: 2px solid var(--green);
+    border-left: 2px solid var(--green);
+  }
+  .panel::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 12px; height: 12px;
+    border-bottom: 2px solid var(--green);
+    border-right: 2px solid var(--green);
+  }
+
+  .panel:hover {
+    border-color: rgba(57,255,110,0.4);
+    background: rgba(57,255,110,0.1);
+  }
+
+  .panel-role {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .panel-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+
+  .panel-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .panel-cta {
+    margin-top: 1.25rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .panel-cta::after {
+    content: '→';
+  }
+
+  .status-bar {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .dot.amber {
+    background: #f59e0b;
+    box-shadow: 0 0 6px #f59e0b;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tag { animation: fadeUp 0.6s ease both; }
+  h1 { animation: fadeUp 0.6s 0.1s ease both; }
+  .subtitle { animation: fadeUp 0.6s 0.15s ease both; }
+  .divider { animation: fadeUp 0.6s 0.2s ease both; }
+  .description { animation: fadeUp 0.6s 0.25s ease both; }
+  .panels { animation: fadeUp 0.6s 0.35s ease both; }
+  .status-bar { animation: fadeUp 0.6s 0.45s ease both; }
+
+  @media (max-width: 480px) {
+    .panels { grid-template-columns: 1fr; }
+    .corner-tr, .corner-bl { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="corner corner-tl">ISTARDA.COM<br>SYS:ONLINE</div>
+<div class="corner corner-tr">PRE-FORECLOSURE<br>INTELLIGENCE</div>
+<div class="corner corner-bl">© 2026 ISTAR</div>
+<div class="corner corner-br">BETA LAUNCH<br>PENDING</div>
+
+<div class="wrapper">
+
+  <div class="tag">Classification: Open</div>
+
+  <h1>ISTAR<span>DA</span></h1>
+  <p class="subtitle">Intelligence · Surveillance · Target Acquisition · Reconnaissance</p>
+
+  <div class="divider"></div>
+
+  <p class="description">
+    A <strong>pre-foreclosure property intelligence marketplace</strong> connecting field inspectors with real estate investors. Ground-level data. Verified findings. Actionable intelligence on distressed assets before they hit the market.
+  </p>
+
+  <div class="panels">
+    <a href="https://app.istarda.com/inspector" class="panel">
+      <div class="panel-role">// Field Operator</div>
+      <div class="panel-title">Inspector</div>
+      <div class="panel-desc">Submit property findings. Earn on every intel purchase. Work your territory.</div>
+      <div class="panel-cta">Join as inspector</div>
+    </a>
+    <a href="https://app.istarda.com/investor" class="panel">
+      <div class="panel-role">// Intelligence Consumer</div>
+      <div class="panel-title">Investor</div>
+      <div class="panel-desc">Access verified field reports on distressed properties before the competition.</div>
+      <div class="panel-cta">Access intel</div>
+    </a>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item"><div class="dot"></div> Platform online</div>
+    <div class="status-item"><div class="dot amber"></div> Public launch pending</div>
+    <div class="status-item"><div class="dot"></div> app.istarda.com</div>
+  </div>
+
+</div>
+
+</body>
+</html>
